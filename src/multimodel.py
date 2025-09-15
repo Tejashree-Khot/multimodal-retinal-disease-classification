@@ -11,13 +11,13 @@ class MultiModalModel(nn.Module):
 
         # Image branch (EfficientNet features only)
         if model_name == "efficientnet-b0":
-            base_model = models.efficientnet_b0(pretrained=True)
+            base_model = models.efficientnet_b0(weights=models.EfficientNet_B0_Weights.DEFAULT)
             img_feature_dim = 1280
         elif model_name == "efficientnet-b4":
-            base_model = models.efficientnet_b4(pretrained=True)
+            base_model = models.efficientnet_b4(weights=models.EfficientNet_B4_Weights.DEFAULT)
             img_feature_dim = 1792
         elif model_name == "efficientnet-b7":
-            base_model = models.efficientnet_b7(pretrained=True)
+            base_model = models.efficientnet_b7(weights=models.EfficientNet_B7_Weights.DEFAULT)
             img_feature_dim = 2560
         else:
             raise ValueError(f"Unknown model_name: {model_name}")
