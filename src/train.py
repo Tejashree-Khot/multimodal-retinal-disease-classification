@@ -153,14 +153,7 @@ def train_model(
     model: str = "efficientnet-b0",
     multimodal: bool = False,
 ):
-    """Train a Efficientnet model on the specified dataset.
-
-    Args:
-        data_dir (str): Path to the training data directory.
-        epochs (int): Number of training epochs.
-        batch_size (int): Batch size for training.
-        lr (float): Learning rate for the optimizer.
-    """
+    """Train a EfficientNet model or multimodalmodel on the dataset."""
 
     image_size = (448, 448)  # Resize images to this size
     print("Loading training data...")
@@ -175,7 +168,7 @@ def train_model(
         test_loader = get_data_loader(
             test_dir, size=image_size, batch_size=batch_size, augment=False, tokenizer=tokenizer
         )
-        model = MultiModalModel(num_classes=5)
+        model = MultiModalModel(num_classes=5, model_name=model)
 
     else:
         train_loader = get_data_loader(
@@ -205,7 +198,20 @@ def train_model(
     print("Model loaded and ready for training.")
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = get_optimizer(model, lr=learning_rate)
+    # differentiate learning rates for multimodal model
+    if multimodal:
+        optimizer = optim.Adam(
+            [
+                {"params": model.image_encoder.parameters(), "lr": learning_rate / 10},
+                {"params": model.text_encoder.parameters(), "lr": learning_rate / 100},
+                {"params": model.img_fc.parameters(), "lr": learning_rate},
+                {"params": model.txt_fc.parameters(), "lr": learning_rate},
+                {"params": model.classifier.parameters(), "lr": learning_rate},
+            ],
+            weight_decay=1e-4,
+        )
+    else:
+        optimizer = get_optimizer(model, lr=learning_rate)
     scheduler = get_scheduler(optimizer)
     init_wandb()
     print("Starting training...")
@@ -283,7 +289,7 @@ def make_parser():
     )
 
     parser.add_argument(
-        "--multimodal", action="store_true", help="Enable multimodal (image+text) training."
+        "--multimodal", action="store_tune", help="Enable multimodal (image+text) training."
     )
     return parser
 
