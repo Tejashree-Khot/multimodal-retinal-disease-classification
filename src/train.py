@@ -176,7 +176,7 @@ def train_model(
             test_dir, size=image_size, batch_size=batch_size, augment=False, tokenizer=tokenizer
         )
         model = MultiModalModel(num_classes=5)
-        unfreeze_model_layers = lambda x: None  # No unfreezing logic for multimodal
+
     else:
         train_loader = get_data_loader(
             train_dir, size=image_size, batch_size=batch_size, augment=True
