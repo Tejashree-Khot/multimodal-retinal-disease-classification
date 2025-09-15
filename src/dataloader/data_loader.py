@@ -17,7 +17,7 @@ import numpy as np
 from torch.utils.data import WeightedRandomSampler
 
 from dataloader.data_utils import CLASSES_DICT
-from dataloader.data_preprocessing import get_efficient_net_data_transforms, tokenize_texts
+from dataloader.data_preprocessing import get_efficient_net_data_transforms, tokenize_text
 from transformers import BertTokenizer, BertModel
 
 
@@ -40,15 +40,15 @@ class CustomDataset(Dataset):
         return len(self.labels)
 
     def __getitem__(self, index: int) -> tuple[Tensor, Tensor, Tensor, Tensor]:
-        # --- Label ---
+        # Label
         label = torch.tensor(self.labels[index], dtype=torch.long)
 
-        # --- Image ---
+        # Image
         image_path = self.image_paths[index]
         image = self.image_transform(Image.open(image_path).convert("RGB"))
         img_tensor = cast(Tensor, image)
 
-        # --- Text (tokenize on the fly) ---
+        # Text (tokenize on the fly)
         text = str(self.texts[index])
         encoding = self.tokenizer(
             text,
@@ -109,7 +109,7 @@ def load_images_and_text(dataset_path: Path) -> tuple[list[Path], list[str], lis
     for row in tqdm(data.iterrows()):
         label = row[1]["class"]
         image_path = dataset_path / "images" / f"{row[1]['Image name']}"
-        text = row[5]["caption"]
+        text = row[1]["caption"]
         if image_path.exists():
             image_paths.append(image_path)
             texts.append(text)
