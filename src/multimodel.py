@@ -6,19 +6,24 @@ from transformers import BertModel
 
 
 class MultiModalModel(nn.Module):
-    def __init__(self, num_classes):
+    def __init__(self, num_classes, model_name="efficientnet-b0"):
         super().__init__()
 
         # Image branch (EfficientNet features only)
-        if model == "efficientnet-b0":
+        if model_name == "efficientnet-b0":
             base_model = models.efficientnet_b0(pretrained=True)
-        elif model == "efficientnet-b1":
+            img_feature_dim = 1280
+        elif model_name == "efficientnet-b4":
             base_model = models.efficientnet_b4(pretrained=True)
-        elif model == "efficientnet-b7":
+            img_feature_dim = 1792
+        elif model_name == "efficientnet-b7":
             base_model = models.efficientnet_b7(pretrained=True)
+            img_feature_dim = 2560
+        else:
+            raise ValueError(f"Unknown model_name: {model_name}")
         self.image_encoder = base_model.features  # feature extractor
         self.global_pool = nn.AdaptiveAvgPool2d(1)  # pool HxW → 1x1
-        self.img_fc = nn.Linear(1280, 512)  # reduce dim
+        self.img_fc = nn.Linear(img_feature_dim, 512)  # reduce dim
 
         # Text branch (BERT)
         self.text_encoder = BertModel.from_pretrained("bert-base-uncased")
@@ -47,5 +52,5 @@ class MultiModalModel(nn.Module):
 
 
 if __name__ == "__main__":
-    model = MultiModalModel(num_classes=5)
+    model = MultiModalModel(num_classes=5, model_name="efficientnet-b0")
     print(model)
