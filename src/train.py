@@ -19,7 +19,7 @@ from torch.optim.lr_scheduler import (
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-
+from dataloader.data_preprocessing import tokenize_text
 from dataloader.data_loader import get_data_loader
 from dataloader.data_preprocessing import load_image
 from models.efficient_net import get_efficientnet_model
@@ -130,17 +130,45 @@ def evaluate(
 
 
 def inference(
-    model: nn.Module, image_paths: list[str], transform: Callable, device: torch.device
+    model: nn.Module,
+    image_paths: list[str],
+    transform: Callable,
+    device: torch.device,
+    multimodal: bool = False,
+    text_inputs: list[str] = None,
 ) -> list[int]:
-    """Run inference on a list of image paths and return predictions."""
+    """Run inference on a list of image paths (and texts if multimodal) and return predictions."""
     model.eval()
     predictions = []
-    with torch.no_grad():
-        for path in tqdm(image_paths):
+    if multimodal:
+        if text_inputs is None or len(text_inputs) != len(image_paths):
+            raise ValueError(
+                "For multimodal inference, text_inputs must be provided and match image_paths length."
+            )
+        tokenizer = tokenize_text()
+        for path, text in tqdm(
+            zip(image_paths, text_inputs),
+            desc="Running Multimodal Inference",
+            unit="sample",
+            total=len(image_paths),
+        ):
             img = load_image(Path(path), 448).to(device)
-            outputs = model(img)
-            _, pred = torch.max(outputs, 1)
-            predictions.append(pred.item())
+            encoding = tokenizer(
+                text, padding="max_length", truncation=True, max_length=128, return_tensors="pt"
+            )
+            input_ids = encoding["input_ids"].to(device)
+            attention_mask = encoding["attention_mask"].to(device)
+            with torch.no_grad():
+                outputs = model(img, input_ids, attention_mask)
+                _, pred = torch.max(outputs, 1)
+                predictions.append(pred.item())
+    else:
+        with torch.no_grad():
+            for path in tqdm(image_paths, desc="Running Inference", unit="image"):
+                img = load_image(Path(path), 448).to(device)
+                outputs = model(img)
+                _, pred = torch.max(outputs, 1)
+                predictions.append(pred.item())
     return predictions
 
 
