@@ -317,7 +317,7 @@ def make_parser():
     )
 
     parser.add_argument(
-        "--multimodal", action="store_tune", help="Enable multimodal (image+text) training."
+        "--multimodal", action="store_true", help="Enable multimodal (image+text) training."
     )
     return parser
 
