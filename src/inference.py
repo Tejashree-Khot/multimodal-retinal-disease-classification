@@ -1,4 +1,4 @@
-# Minimalistic inference script for cancer detection
+# Minimalistic inference
 import argparse
 import sys
 from pathlib import Path
@@ -8,57 +8,66 @@ from termcolor import colored
 
 from dataloader.data_preprocessing import load_image
 from src.models.model_utils import load_model
-
-CLASSES = ["adenocarcinoma", "large.cell.carcinoma", "normal", "squamous.cell.carcinoma"]
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+from transformers import BertTokenizer
 
 
-def predict(image_path: Path, model_path: Path) -> None:
-    """Predict the class of a given image using a trained SimpleCNN model.
+classes_dict = [
+    "Clinically_Significant_Macular_Edema",
+    "No_DR",
+    "normal",
+    "Mild_Moderate_NPDR",
+    "Severe_PDR",
+]
 
-    Args:
-        image_path (str): Path to the image file to be predicted.
-        model_path (str): Path to the trained model weights file.
-    """
-    print(f"Loading model from {model_path}...")
-    model = load_model(model_path, DEVICE)
-    if model is None:
-        print("Failed to load the model.")
-        return
-    print("Model loaded successfully.")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # Load and preprocess the image
-    image = load_image(image_path).to(DEVICE)
-    print(f"Image loaded and preprocessed: {image.shape}")
+tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 
-    # Run inference
+
+def predict(model, image_path: Path, text: str, multimodal: bool):
+    model.eval()
     with torch.no_grad():
-        output = model(image)
-        probabilities = torch.softmax(output, dim=1).cpu().numpy()[0]
-        # round probabilities to 2 decimal places
-        probabilities = [round(prob, 3) for prob in probabilities]
-        pred = int(torch.argmax(output, 1).item())
-    print(colored(f"Prediction: {CLASSES[pred]}, Probabilities: {probabilities[:]}, green"))
+        # apply same transforms and tokenization as training
+        if multimodal:
+            image = load_image(image_path)
+            encoding = tokenizer(
+                text, padding="max_length", truncation=True, max_length=128, return_tensors="pt"
+            )
+            text = encoding["input_ids"].squeeze(0)  # shape [128]
+            attention_mask = encoding["attention_mask"].squeeze(0)  # shape [128]
+            image, text, attention_mask = (
+                image.to(device),
+                text.to(device),
+                attention_mask.to(device),
+            )
+            outputs = model(image.unsqueeze(0), text, attention_mask)
 
-
-def make_parser():
-    """Create an argument parser for command line arguments."""
-    parser = argparse.ArgumentParser(description="Cancer Detection Inference Script")
-    parser.add_argument("--image_path", type=Path, help="Path to the image file to be predicted")
-    parser.add_argument(
-        "--model_path",
-        type=Path,
-        default=Path("../checkpoints/model.pth"),
-        help="Path to the trained model weights file",
-    )
-    return parser
+        else:
+            image = load_image(image_path)
+            image = image.to(device)
+            outputs = model(image.unsqueeze(0))
+        _, predicted = torch.max(outputs, 1)
+        predicted_class = classes_dict[predicted.item()]
+        return predicted_class
 
 
 if __name__ == "__main__":
-    parser = make_parser()
+    parser = argparse.ArgumentParser(description="Inference for retinal disease classification")
+    parser.add_argument("--image_path", type=str, help="Path to the image file.")
+    parser.add_argument("--text", type=str, default="", help="Associated text for the image.")
+    parser.add_argument(
+        "--model_path", type=str, required=True, help="Path to the trained model file."
+    )
+    parser.add_argument(
+        "--multimodal", action="store_true", help="Enable multimodal (image+text) inference"
+    )
     args = parser.parse_args()
-    if not args.image_path.exists():
-        print(f"Image file not found at {args.image_path}. Please provide a valid image path.")
-        sys.exit(1)
-
-    predict(Path(sys.argv[1]), Path("../checkpoints/model.pth"))
+    image_path = Path(args.image_path)
+    text = args.text
+    model_path = Path(args.model_path)
+    multimodal = args.multimodal
+    model = load_model(model_path, multimodal)
+    model = model.to(device)
+    predicted_class = predict(model, image_path, text, multimodal)
+    print(colored(f"Predicted class: {predicted_class}", "green"))
+    sys.exit(0)
