@@ -61,7 +61,10 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", type=int, default=32, help="Batch size for evaluation")
     parser.add_argument("--image_size", type=int, default=224, help="Image size for resizing")
     parser.add_argument(
-        "--multimodal", action="store_true", help="Enable multimodal(image+ text) evaluation"
+        "--multimodal",
+        action="store_true",
+        default=False,
+        help="Enable multimodal(image+ text) evaluation",
     )
     args = parser.parse_args()
     print(colored(f"Loading model from {args.model_path}", "cyan"))
@@ -86,7 +89,7 @@ if __name__ == "__main__":
         print(colored(f"Recall: {recall:.4f}", "green"))
         print(colored(f"F1 Score: {f1:.4f}", "green"))
     else:
-        model = get_efficientnet_model(num_classes=5, pretrained=False, multimodal=args.multimodal)
+        model = get_efficientnet_model(num_classes=5, pretrained=False)
         model.load_state_dict(torch.load(args.model_path, map_location=DEVICE))
         model.to(DEVICE)
         print(colored("Model loaded successfully.", "green"))
@@ -97,7 +100,7 @@ if __name__ == "__main__":
             augment=False,
             tokenizer=None,
             use_weighted_sampler=False,
-            multimodal=args.multimodal,
+            multimodal=False,
         )
         print(colored(f"Evaluating on {len(test_loader.dataset)} test samples...", "cyan"))
         accuracy, precision, recall, f1 = evaluate_model(model, test_loader)
