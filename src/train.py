@@ -23,7 +23,7 @@ from dataloader.data_preprocessing import tokenize_text
 from dataloader.data_loader import get_data_loader
 from dataloader.data_preprocessing import load_image
 from models.efficient_net import get_efficientnet_model
-from src.multimodel import MultiModalModel
+from multimodel import MultiModalModel
 from transformers import BertTokenizer
 
 
@@ -201,7 +201,13 @@ def train_model(
             use_weighted_sampler=True,
         )
         test_loader = get_data_loader(
-            test_dir, size=image_size, batch_size=batch_size, augment=False, tokenizer=tokenizer
+            test_dir,
+            size=image_size,
+            batch_size=batch_size,
+            augment=False,
+            tokenizer=tokenizer,
+            multimodal=True,
+            max_length=128,
         )
         model = MultiModalModel(num_classes=5, model_name=model)
 
@@ -213,9 +219,15 @@ def train_model(
             augment=True,
             multimodal=False,
             use_weighted_sampler=True,
+            tokenizer=None,
         )
         test_loader = get_data_loader(
-            test_dir, size=image_size, batch_size=batch_size, augment=False
+            test_dir,
+            size=image_size,
+            batch_size=batch_size,
+            augment=False,
+            multimodal=False,
+            tokenizer=None,
         )
         # Initialize the model
         model_path = Path("checkpoints/model.pth")  # Path to load pre-trained weights if available
