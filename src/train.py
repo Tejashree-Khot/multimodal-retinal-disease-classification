@@ -191,7 +191,14 @@ def train_model(
     if multimodal:
         tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
         train_loader = get_data_loader(
-            train_dir, size=image_size, batch_size=batch_size, augment=True, tokenizer=tokenizer
+            train_dir,
+            size=image_size,
+            batch_size=batch_size,
+            augment=True,
+            tokenizer=tokenizer,
+            multimodal=True,
+            max_length=128,
+            use_weighted_sampler=True,
         )
         test_loader = get_data_loader(
             test_dir, size=image_size, batch_size=batch_size, augment=False, tokenizer=tokenizer
@@ -200,7 +207,12 @@ def train_model(
 
     else:
         train_loader = get_data_loader(
-            train_dir, size=image_size, batch_size=batch_size, augment=True
+            train_dir,
+            size=image_size,
+            batch_size=batch_size,
+            augment=True,
+            multimodal=False,
+            use_weighted_sampler=True,
         )
         test_loader = get_data_loader(
             test_dir, size=image_size, batch_size=batch_size, augment=False
