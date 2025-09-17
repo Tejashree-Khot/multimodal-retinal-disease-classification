@@ -70,7 +70,10 @@ if __name__ == "__main__":
     print(colored(f"Loading model from {args.model_path}", "cyan"))
     if args.multimodal:
         model = MultiModalModel(num_classes=5, model_name="efficientnet-b0")
-        model.load_state_dict(torch.load(args.model_path, map_location=DEVICE))
+        checkpoint = torch.load(args.model_path, map_location=DEVICE)
+        if isinstance(checkpoint, tuple):
+            checkpoint = checkpoint[0]
+        model.load_state_dict(checkpoint)
         model.to(DEVICE)
         print(colored("Model loaded successfully.", "green"))
         test_loader = get_data_loader(
@@ -90,7 +93,10 @@ if __name__ == "__main__":
         print(colored(f"F1 Score: {f1:.4f}", "green"))
     else:
         model = get_efficientnet_model(num_classes=5, pretrained=False)
-        model.load_state_dict(torch.load(args.model_path, map_location=DEVICE))
+        checkpoint = model.load_state_dict(torch.load(args.model_path, map_location=DEVICE))
+        if isinstance(checkpoint, tuple):
+            checkpoint = checkpoint[0]
+        model.load_state_dict(checkpoint)
         model.to(DEVICE)
         print(colored("Model loaded successfully.", "green"))
         test_loader = get_data_loader(
