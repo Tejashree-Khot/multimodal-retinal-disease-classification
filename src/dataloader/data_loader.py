@@ -19,6 +19,7 @@ from torch.utils.data import WeightedRandomSampler
 from dataloader.data_utils import CLASSES_DICT
 from dataloader.data_preprocessing import get_efficient_net_data_transforms, tokenize_text
 from transformers import BertTokenizer, BertModel
+from multimodel import MultiModalModel
 
 
 class CustomDataset(Dataset):
@@ -30,11 +31,13 @@ class CustomDataset(Dataset):
         image_transform: transforms.Compose,
         tokenizer: BertTokenizer,
         max_length: int = 128,
+        multimodal: bool = False,
     ):
         self.image_paths, self.texts, self.labels = load_images_and_text(dataset_path)
         self.image_transform = image_transform
         self.tokenizer = tokenizer
         self.max_length = max_length
+        self.multimodal = multimodal
 
     def __len__(self) -> int:
         return len(self.labels)
@@ -48,19 +51,22 @@ class CustomDataset(Dataset):
         image = self.image_transform(Image.open(image_path).convert("RGB"))
         img_tensor = cast(Tensor, image)
 
-        # Text (tokenize on the fly)
-        text = str(self.texts[index])
-        encoding = self.tokenizer(
-            text,
-            padding="max_length",
-            truncation=True,
-            max_length=self.max_length,
-            return_tensors="pt",
-        )
-        input_ids = encoding["input_ids"].squeeze(0)  # shape [128]
-        attention_mask = encoding["attention_mask"].squeeze(0)  # shape [128]
+        if self.multimodal:
+            # Text (tokenize on the fly)
+            text = str(self.texts[index])
+            encoding = self.tokenizer(
+                text,
+                padding="max_length",
+                truncation=True,
+                max_length=self.max_length,
+                return_tensors="pt",
+            )
+            input_ids = encoding["input_ids"].squeeze(0)  # shape [128]
+            attention_mask = encoding["attention_mask"].squeeze(0)  # shape [128]
 
-        return img_tensor, input_ids, attention_mask, label
+            return img_tensor, input_ids, attention_mask, label
+        else:
+            return img_tensor, label
 
 
 def image_transform(
@@ -128,6 +134,7 @@ def get_data_loader(
     augment: bool,
     tokenizer,
     use_weighted_sampler: bool = False,
+    multimodal: bool = False,
 ) -> DataLoader:
     """Get multimodal data loader (image + text + label)."""
 
@@ -136,7 +143,10 @@ def get_data_loader(
 
     # Create dataset
     dataset = CustomDataset(
-        dataset_path=dataset_path, image_transform=data_transform, tokenizer=tokenizer
+        dataset_path=dataset_path,
+        image_transform=data_transform,
+        tokenizer=tokenizer if multimodal else None,
+        multimodal=multimodal,
     )
     if use_weighted_sampler:
         # Compute weights for class balancing
