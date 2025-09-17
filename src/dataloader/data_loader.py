@@ -132,7 +132,7 @@ def get_data_loader(
     size: tuple | list,
     batch_size: int,
     augment: bool,
-    tokenizer,
+    tokenizer: bool | BertTokenizer = None,
     use_weighted_sampler: bool = False,
     multimodal: bool = False,
 ) -> DataLoader:
