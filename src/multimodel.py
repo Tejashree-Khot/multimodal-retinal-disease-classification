@@ -49,8 +49,3 @@ class MultiModalModel(nn.Module):
         combined = torch.cat((img_feats, txt_feats), dim=1)  # [batch, 1024]
         output = self.classifier(combined)  # [batch, num_classes]
         return output
-
-
-if __name__ == "__main__":
-    model = MultiModalModel(num_classes=5, model_name="efficientnet-b0")
-    print(model)
