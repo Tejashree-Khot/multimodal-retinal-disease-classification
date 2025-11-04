@@ -9,13 +9,7 @@ from typing import Callable
 import torch
 import wandb
 from torch import nn, optim
-from torch.optim.lr_scheduler import (
-    CosineAnnealingLR,
-    CosineAnnealingWarmRestarts,
-    ReduceLROnPlateau,
-    StepLR,
-    _LRScheduler,
-)
+from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
