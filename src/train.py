@@ -225,10 +225,7 @@ def train_model(
         )
         # Initialize the model
         model_path = Path("checkpoints/model.pth")  # Path to load pre-trained weights if available
-        if unfreeze_strategy == "all":
-            fine_tune_all = True
-        else:
-            fine_tune_all = False
+        fine_tune_all = unfreeze_strategy == "all"
         model, unfreeze_model_layers = get_efficientnet_model(
             num_classes=5, fine_tune_all=fine_tune_all, pretrained=True, model_path=model_path
         )
