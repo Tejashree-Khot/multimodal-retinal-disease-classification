@@ -21,7 +21,7 @@ def get_efficientnet_model(
     model_path: Optional[Path] = None,
 ) -> Tuple[nn.Module, Callable]:
     """
-    Returns EfficientNet-B0 with a custom classifier and a function to unfreeze layers.
+    Returns EfficientNet with a custom classifier and a function to unfreeze layers.
     Usage:
         model, unfreeze = get_efficientnet_model(...)
         unfreeze(0)      # only classifier
