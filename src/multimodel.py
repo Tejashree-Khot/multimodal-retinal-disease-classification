@@ -1,3 +1,13 @@
+"""Multimodal model combining an EfficientNet image encoder and BERT text encoder.
+
+This module defines a lightweight fusion model that accepts image tensors and
+tokenized text inputs. The two branches (image and text) are projected to the
+same embedding size and concatenated before the final classification head.
+
+The model is intentionally simple and designed to be used in experiments where
+both image and textual captions or metadata are available.
+"""
+
 import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader
@@ -6,6 +16,21 @@ from transformers import BertModel
 
 
 class MultiModalModel(nn.Module):
+    """Multimodal classifier combining image and text encoders.
+
+    Args:
+        num_classes (int): Number of target classes for classification.
+        model_name (str): EfficientNet variant to use for the image branch.
+
+    Inputs to forward:
+        images: torch.Tensor of shape [batch, 3, H, W]
+        input_ids: torch.Tensor of token ids for BERT [batch, seq_len]
+        attention_mask: torch.Tensor attention masks [batch, seq_len]
+
+    Returns:
+        logits: torch.Tensor of shape [batch, num_classes]
+    """
+
     def __init__(self, num_classes, model_name="efficientnet-b0"):
         super().__init__()
 
@@ -35,6 +60,16 @@ class MultiModalModel(nn.Module):
         )
 
     def forward(self, images, input_ids, attention_mask):
+        """Forward pass for the multimodal model.
+
+        Args:
+            images (torch.Tensor): Image batch [B, 3, H, W].
+            input_ids (torch.Tensor): Token ids for text [B, L].
+            attention_mask (torch.Tensor): Attention masks [B, L].
+
+        Returns:
+            torch.Tensor: Logits of shape [B, num_classes].
+        """
         # Image branch
         img_feats = self.image_encoder(images)  # [batch, 1280, H, W]
         img_feats = self.global_pool(img_feats)  # [batch, 1280, 1, 1]

@@ -1,3 +1,10 @@
+"""Image and text preprocessing helpers used by the dataloader.
+
+This module contains transforms and small helpers for loading images and
+tokenizing text. The functions provide a consistent preprocessing pipeline so
+that training, evaluation and inference use the same steps.
+"""
+
 from pathlib import Path
 from typing import Callable
 
@@ -8,7 +15,15 @@ from transformers import BertTokenizer, BertModel
 
 
 def get_efficient_net_data_transforms(img_size: int = 224) -> dict[str, Callable]:
-    """Return data augmentation and normalization transforms."""
+    """Return data augmentation and normalization transforms.
+
+    Args:
+        img_size (int): Target image size for crop/resize operations.
+
+    Returns:
+        dict: A dictionary with keys "train" and "val" mapping to transform
+              callables used for training and validation respectively.
+    """
     mean = [0.485, 0.456, 0.406]
     std = [0.229, 0.224, 0.225]
     return {
@@ -55,12 +70,8 @@ def get_transforms(image_size: int = 224) -> transforms.Compose:
 def load_image(image_path: Path, image_size: int = 224) -> torch.Tensor:
     """Load and preprocess an image for model inference.
 
-    Args:
-        image_path (str): Path to the image file.
-        image_size (int): Size to which the image will be resized.
-
-    Returns:
-        torch.Tensor: Preprocessed image tensor.
+    The returned tensor has a leading batch dimension (shape [1, C, H, W]) so
+    it can be passed directly to models that expect batches.
     """
     pil_image = Image.open(image_path).convert("RGB")
     transform = get_transforms(image_size)
@@ -76,7 +87,7 @@ def tokenize_text(max_length: int = 128) -> BertTokenizer:
     """Initialize and return a BERT tokenizer.
 
     Args:
-        max_length (int): Maximum length for tokenization.
+        max_length (int): Maximum length for tokenization (kept for API parity).
 
     Returns:
         BertTokenizer: Initialized BERT tokenizer.
