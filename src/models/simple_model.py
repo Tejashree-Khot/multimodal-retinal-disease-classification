@@ -1,9 +1,21 @@
-"""A simple CNN model for image classification."""
+"""A simple CNN model used for experiments and embedding visualization.
+
+This model is intentionally small and not intended for production use. It is
+useful for quick tests and extracting intermediate convolutional embeddings
+for visualization with t-SNE.
+"""
 
 from torch import nn
 
 
 class SimpleCNN(nn.Module):
+    """Small convolutional classifier.
+
+    Architecture:
+        - Two convolutional blocks with ReLU + MaxPool
+        - A small fully-connected head producing logits for 5 classes
+    """
+
     def __init__(self):
         super().__init__()
         self.conv = nn.Sequential(
@@ -19,6 +31,14 @@ class SimpleCNN(nn.Module):
         )
 
     def forward(self, x):
+        """Forward pass.
+
+        Args:
+            x (torch.Tensor): Input image tensor of shape [B, 3, H, W].
+
+        Returns:
+            torch.Tensor: Logits of shape [B, 5].
+        """
         x = self.conv(x)
         x = self.fc(x)
         return x
