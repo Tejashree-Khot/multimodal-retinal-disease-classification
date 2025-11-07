@@ -7,7 +7,6 @@ import torch
 from termcolor import colored
 
 from dataloader.data_preprocessing import load_image
-from src.models.model_utils import load_model
 from transformers import BertTokenizer
 from multimodel import MultiModalModel
 from models.efficient_net import get_efficientnet_model
