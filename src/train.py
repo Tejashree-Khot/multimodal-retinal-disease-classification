@@ -17,7 +17,7 @@ from dataloader.data_preprocessing import tokenize_text
 from dataloader.data_loader import get_data_loader
 from dataloader.data_preprocessing import load_image
 from models.efficient_net import get_efficientnet_model
-from multimodel import MultiModalModel
+from src.models.multimodel import MultiModalModel
 from transformers import BertTokenizer
 
 

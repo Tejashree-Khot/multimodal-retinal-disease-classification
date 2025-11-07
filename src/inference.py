@@ -8,7 +8,7 @@ from termcolor import colored
 
 from dataloader.data_preprocessing import load_image
 from transformers import BertTokenizer
-from multimodel import MultiModalModel
+from src.models.multimodel import MultiModalModel
 from models.efficient_net import get_efficientnet_model
 
 
