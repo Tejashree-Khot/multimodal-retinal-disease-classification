@@ -9,7 +9,7 @@ from pathlib import Path
 from dataloader.data_loader import get_data_loader
 from models.efficient_net import get_efficientnet_model
 from dataloader.data_preprocessing import tokenize_text
-from multimodel import MultiModalModel
+from src.models.multimodel import MultiModalModel
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

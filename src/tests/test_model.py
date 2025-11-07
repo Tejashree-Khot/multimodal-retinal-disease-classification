@@ -1,6 +1,6 @@
 # tests/test_model.py
 from models.simple_model import SimpleCNN
-from multimodel import MultiModalModel
+from src.models.multimodel import MultiModalModel
 
 
 def test_multimodal_model():
