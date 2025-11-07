@@ -9,6 +9,8 @@ from termcolor import colored
 from dataloader.data_preprocessing import load_image
 from src.models.model_utils import load_model
 from transformers import BertTokenizer
+from multimodel import MultiModalModel
+from models.efficient_net import get_efficientnet_model
 
 
 classes_dict = [
@@ -66,7 +68,13 @@ if __name__ == "__main__":
     text = args.text
     model_path = Path(args.model_path)
     multimodal = args.multimodal
-    model = load_model(model_path, multimodal)
+    # Load appropriate model
+    if multimodal:
+        model = MultiModalModel(num_classes=len(classes_dict), model_name="efficientnet-b0")
+    else:
+        model = get_efficientnet_model(num_classes=len(classes_dict), model_name="efficientnet-b0")
+    # Load model weights
+    model.load_state_dict(torch.load(model_path, map_location=device))
     model = model.to(device)
     predicted_class = predict(model, image_path, text, multimodal)
     print(colored(f"Predicted class: {predicted_class}", "green"))
