@@ -29,24 +29,20 @@ def predict(model, image_path: Path, text: str, multimodal: bool):
     model.eval()
     with torch.no_grad():
         # apply same transforms and tokenization as training
+        image = load_image(image_path)
+        if image.dim == 3:
+            image = image.unsqueeze(0)
+        image = image.to(device)
         if multimodal:
-            image = load_image(image_path)
             encoding = tokenizer(
                 text, padding="max_length", truncation=True, max_length=128, return_tensors="pt"
             )
-            text = encoding["input_ids"].squeeze(0)  # shape [128]
-            attention_mask = encoding["attention_mask"].squeeze(0)  # shape [128]
-            image, text, attention_mask = (
-                image.to(device),
-                text.to(device),
-                attention_mask.to(device),
-            )
-            outputs = model(image.unsqueeze(0), text, attention_mask)
+            input_ids = encoding["input_ids"].to(device)
+            attention_mask = encoding["attention_mask"].to(device)
+            outputs = model(image, input_ids, attention_mask)
 
         else:
-            image = load_image(image_path)
-            image = image.to(device)
-            outputs = model(image.unsqueeze(0))
+            outputs = model(image)
         _, predicted = torch.max(outputs, 1)
         predicted_class = classes_dict[predicted.item()]
         return predicted_class
@@ -69,7 +65,7 @@ if __name__ == "__main__":
     multimodal = args.multimodal
     # Load appropriate model
     if multimodal:
-        model = MultiModalModel(num_classes=len(classes_dict), model_name="efficientnet-b0")[0]
+        model = MultiModalModel(num_classes=len(classes_dict), model_name="efficientnet-b0")
     else:
         model = get_efficientnet_model(num_classes=len(classes_dict), model_name="efficientnet-b0")[
             0
