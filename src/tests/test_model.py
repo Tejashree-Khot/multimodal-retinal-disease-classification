@@ -1,6 +1,7 @@
 # tests/test_model.py
 from models.simple_model import SimpleCNN
 from src.models.multimodel import MultiModalModel
+from src.models.efficientnet_model import get_efficientnet_model
 
 
 def test_multimodal_model():
@@ -24,7 +25,15 @@ def test_simple_cnn():
     assert len(model.fc) > 0, "Fully connected layers are not defined"
 
 
+def test_efficientnet_model():
+    """Test the EfficientNet model loading."""
+    model = get_efficientnet_model(num_classes=5, model_name="efficientnet-b0")
+    assert model is not None, "EfficientNet model initialization failed"
+    assert len(list(model.parameters())) > 0, "Model parameters are not defined"
+
+
 if __name__ == "__main__":
     test_multimodal_model()
     test_simple_cnn()
+    test_efficientnet_model()
     print("All tests passed!")
