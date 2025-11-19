@@ -134,6 +134,7 @@ def get_data_loader(
     augment: bool,
     tokenizer: bool | BertTokenizer = None,
     use_weighted_sampler: bool = False,
+    max_length=128,
     multimodal: bool = False,
 ) -> DataLoader:
     """Get multimodal data loader (image + text + label)."""
