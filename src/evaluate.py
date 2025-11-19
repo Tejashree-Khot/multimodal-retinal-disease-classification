@@ -10,6 +10,7 @@ from dataloader.data_loader import get_data_loader
 from models.efficient_net import get_efficientnet_model
 from dataloader.data_preprocessing import tokenize_text
 from src.models.multimodel import MultiModalModel
+from transformers import BertTokenizer
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -22,15 +23,12 @@ def evaluate_model(model, data_loader, multimodal=False):
 
     with torch.no_grad():
         if multimodal:
-            for images, texts, attention_masks, labels in tqdm(data_loader, desc="Evaluating"):
+            for images, input_ids, attention_masks, labels in tqdm(data_loader, desc="Evaluating"):
                 images = images.to(DEVICE)
                 labels = labels.to(DEVICE)
-
-                # tokenize on the fly
-                encoding = tokenize_text(texts)
-                texts = encoding["input_ids"].to(DEVICE)
-                attention_masks = encoding["attention_mask"].to(DEVICE)
-                outputs = model(images, texts, attention_masks)
+                input_ids = input_ids.to(DEVICE)
+                attention_masks = attention_masks.to(DEVICE)
+                outputs = model(images, input_ids, attention_masks)
                 _, preds = torch.max(outputs, 1)
                 all_labels.extend(labels.cpu().numpy())
                 all_preds.extend(preds.cpu().numpy())
@@ -69,6 +67,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(colored(f"Loading model from {args.model_path}", "cyan"))
     if args.multimodal:
+        tokenzier = BertTokenizer.from_pretrained("bert-base-uncased")
         model = MultiModalModel(num_classes=5, model_name="efficientnet-b0")
         if isinstance(model, tuple):
             model = model[0]
@@ -80,7 +79,7 @@ if __name__ == "__main__":
             size=(args.image_size, args.image_size),
             batch_size=args.batch_size,
             augment=False,
-            tokenizer=None,
+            tokenizer=tokenzier,
             use_weighted_sampler=False,
             multimodal=args.multimodal,
         )
