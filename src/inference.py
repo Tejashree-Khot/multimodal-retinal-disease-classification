@@ -69,9 +69,11 @@ if __name__ == "__main__":
     multimodal = args.multimodal
     # Load appropriate model
     if multimodal:
-        model = MultiModalModel(num_classes=len(classes_dict), model_name="efficientnet-b0")
+        model = MultiModalModel(num_classes=len(classes_dict), model_name="efficientnet-b0")[0]
     else:
-        model = get_efficientnet_model(num_classes=len(classes_dict), model_name="efficientnet-b0")
+        model = get_efficientnet_model(num_classes=len(classes_dict), model_name="efficientnet-b0")[
+            0
+        ]
     # Load model weights
     model.load_state_dict(torch.load(model_path, map_location=device))
     model = model.to(device)
