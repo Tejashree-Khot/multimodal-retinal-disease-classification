@@ -19,7 +19,7 @@ from torch.utils.data import WeightedRandomSampler
 from dataloader.data_utils import CLASSES_DICT
 from dataloader.data_preprocessing import get_efficient_net_data_transforms, tokenize_text
 from transformers import BertTokenizer, BertModel
-from src.models.multimodel import MultiModalModel
+from models.multimodel import MultiModalModel
 
 
 class CustomDataset(Dataset):
