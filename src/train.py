@@ -312,7 +312,9 @@ def train_model(
 
 def make_parser():
     """Create an argument parser for command line arguments."""
-    parser = argparse.ArgumentParser(description="Train a efficient_net model on retinal images.")
+    parser = argparse.ArgumentParser(
+        description="Train a efficient_net model on retinal images or multimodal data."
+    )
     parser.add_argument(
         "--data_dir", type=Path, required=True, help="Path to the training data directory."
     )
