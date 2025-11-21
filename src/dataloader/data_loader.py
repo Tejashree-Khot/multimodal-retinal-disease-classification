@@ -73,7 +73,7 @@ def image_transform(
     img_size: tuple | list, augment: bool, arch: str = "efficientnet-b0"
 ) -> transforms.Compose:
     """Image transformation for training and validation."""
-    if arch == "efficientnet-b0":
+    if arch.startswith("efficientnet"):
         # Use the dedicated EfficientNet transforms
         transforms_dict = get_efficient_net_data_transforms(
             img_size if isinstance(img_size, int) else img_size[0]
@@ -87,7 +87,7 @@ def image_transform(
             # Training transforms with augmentation
             return transforms.Compose(
                 [
-                    transforms.Resize((size[0], size[1])),
+                    transforms.Resize((size[0], size[1])),  # TODO:img_size not size
                     transforms.ToTensor(),
                     transforms.Normalize(mean=mean, std=std),
                 ]
