@@ -11,7 +11,7 @@ from typing import Callable
 import torch
 from PIL import Image
 from torchvision import transforms
-from transformers import BertTokenizer, BertModel
+from transformers import BertTokenizer
 
 
 def get_efficient_net_data_transforms(img_size: int = 224) -> dict[str, Callable]:
