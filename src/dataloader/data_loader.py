@@ -18,7 +18,7 @@ from torch.utils.data import WeightedRandomSampler
 
 from dataloader.data_utils import CLASSES_DICT
 from dataloader.data_preprocessing import get_efficient_net_data_transforms, tokenize_text
-from transformers import BertTokenizer, BertModel
+from transformers import BertTokenizer
 from models.multimodel import MultiModalModel
 
 
@@ -120,6 +120,7 @@ def load_images_and_text(dataset_path: Path) -> tuple[list[Path], list[str], lis
             image_paths.append(image_path)
             texts.append(text)
             labels.append(int(CLASSES_DICT[label]))
+        # TODO: check for caption missing if multimodal
         else:
             print(f"Image {image_path} does not exist, skipping.")
 
