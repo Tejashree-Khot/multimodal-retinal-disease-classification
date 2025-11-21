@@ -37,7 +37,7 @@ def get_efficientnet_model(
             weights=EfficientNet_B1_Weights.DEFAULT if pretrained else None
         )
     elif model_name == "efficientnet-b7":
-        model = models.efficientnet_b2(
+        model = models.efficientnet_b7(
             weights=EfficientNet_B7_Weights.DEFAULT if pretrained else None
         )
     model.classifier = nn.Sequential(
