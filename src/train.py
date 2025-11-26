@@ -62,11 +62,15 @@ def train_one_epoch(
     optimizer: optim.Optimizer,
     device: torch.device | str,
     multimodal: bool = False,
+    accumulation_steps: int = 1,
 ) -> tuple[float, float]:
     """Train the model for one epoch and return loss and accuracy."""
     model.train()
     running_loss, correct, total = 0.0, 0, 0
-    for batch in tqdm(dataloader):
+    # initialize gradients to zero before the loop starts
+    optimizer.zero_grad()
+
+    for i, batch in enumerate(tqdm(dataloader)):
         if multimodal:
             images, input_ids, attention_mask, labels = batch
             images = images.to(device)
@@ -82,12 +86,23 @@ def train_one_epoch(
             outputs = model(inputs_dev)
             labels = labels_dev
         loss = criterion(outputs, labels)
+        loss = loss / accumulation_steps
         loss.backward()
-        optimizer.step()
-        running_loss += loss.item() * labels.size(0)
+        # Update weights only when the accumulation counter hits the target
+        if (i + 1) % accumulation_steps == 0:
+            optimizer.step()
+            optimizer.zero_grad()
+            print(
+                f"optimizer step executed at batch index {i}. virtual batch size: {accumulation_steps * labels.size(0)}"
+            )
+        running_loss += loss.item() * accumulation_steps * labels.size(0)
         _, preds = torch.max(outputs, 1)
         correct += (preds == labels).sum().item()
         total += labels.size(0)
+
+    if (i + 1) % accumulation_steps != 0:
+        optimizer.step()
+        optimizer.zero_grad()
     return running_loss / total, correct / total
 
 
@@ -274,8 +289,16 @@ def train_model(
                 unfreeze_model_layers(len(list(model.features)) + 1)
 
         model.train()
+        desired_virtual_batch = 16
+        accumulation_steps = desired_virtual_batch // batch_size
         train_loss, train_acc = train_one_epoch(
-            model, train_loader, criterion, optimizer, DEVICE, multimodal=multimodal
+            model,
+            train_loader,
+            criterion,
+            optimizer,
+            DEVICE,
+            multimodal=multimodal,
+            accumulation_steps=accumulation_steps,
         )
         val_loss, val_acc = evaluate(model, test_loader, criterion, DEVICE, multimodal=multimodal)
         scheduler.step()
