@@ -54,6 +54,8 @@ class CustomDataset(Dataset):
         if self.multimodal:
             # Text (tokenize on the fly)
             text = str(self.texts[index])
+            text = text.lower()
+
             encoding = self.tokenizer(
                 text,
                 padding="max_length",
@@ -116,6 +118,9 @@ def load_images_and_text(dataset_path: Path) -> tuple[list[Path], list[str], lis
         label = row[1]["class"]
         image_path = dataset_path / "images" / f"{row[1]['Image name']}"
         text = row[1]["caption"]
+        if pd.isna(text) or (isinstance(text, str) and not text.strip()):
+            text = "[NO_CAPTION]"
+
         if image_path.exists():
             image_paths.append(image_path)
             texts.append(text)
