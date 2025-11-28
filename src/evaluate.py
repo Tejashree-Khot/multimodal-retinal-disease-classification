@@ -8,7 +8,6 @@ import argparse
 from pathlib import Path
 from dataloader.data_loader import get_data_loader
 from models.efficient_net import get_efficientnet_model
-from dataloader.data_preprocessing import tokenize_text
 from models.multimodel import MultiModalModel
 from transformers import BertTokenizer
 
