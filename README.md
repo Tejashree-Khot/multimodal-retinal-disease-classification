@@ -1,6 +1,11 @@
 # retinal-disease-classification
 Retinal Disease Classification with Fundus Images
 
+## Note
+
+This repo is archived and split into two seperate repos [retinal-disease-classification](https://github.com/Tejashree-Khot/retinal-disease-classification)
+and [multimodal-image-captioning](https://github.com/Tejashree-Khot/multimodal-image-captioning) and this two repos are designed for two different purposes.
+
 ## 1. Overview
 Classify retinal diseases (e.g., DR, AMD, Glaucoma, Normal) from color fundus images using deep learning (transfer learning + augmentations).  
 Focus: clean pipeline, reproducibility, extendability.
